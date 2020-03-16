@@ -59,10 +59,12 @@ async def korona(ctx):
 #if someone mentions corona posts corona bottle
 @client.event
 async def on_message(message):
+    channel = message.channel
     if "corona" in message.content.lower():
-        channel = message.channel
         await channel.send(file=discord.File('corona.jpeg'))
-    
+    elif "korona" in message.content.lower() and ".korona" not in message.content.lower():
+        await channel.send('Ai tarkoititko...')
+        await channel.send(file=discord.File('corona.jpeg'))
     #you need this that commands wont't break
     await client.process_commands(message)
 
