@@ -31,7 +31,7 @@ import json
 import requests
 from discord.ext import commands
 
-myToken = 'Njg5MTE0MzgxODUzNzg2MzE4.Xm-KDQ.BpAKhO0_DakWYt41m3eHrTcvNyA'
+myToken = 'Njg5MTE0MzgxODUzNzg2MzE4.Xm_1DA.4LegCpYqRrT0BKhIf9D5g0IgMAQ'
 
 #use '.' before command
 client = commands.Bot(command_prefix = '.')
