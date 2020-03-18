@@ -27,9 +27,15 @@ SOFTWARE.
 """
 
 import json
+import csv
+from datetime import datetime, date, timedelta
 import requests
+import numpy as np
+import pandas as pd
+from io import StringIO
 
 response = requests.get('https://w3qa5ydb4l.execute-api.eu-west-1.amazonaws.com/prod/finnishCoronaData')
+globalDataUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{date}.csv'
 
 def jprint(obj):
     # create a formatted string of the Python JSON object
@@ -66,6 +72,62 @@ def getPirkanmaaDeaths(obj):
             pConf += 1
     print("{}: {}".format("Pirkanmaa deaths", pConf))
 
+def getGlobalKorona():
+    d = datetime.today().strftime('%m-%d-%Y')
+    res = globalDataUrl.replace('{date}', d)
+    print(res)
+    df = pd.read_csv(res, error_bad_lines=False)
+    print(df['Confirmed'])
+
+    confirmed = 0
+    for i in df['Confirmed']:
+        confirmed += i
+
+    print(confirmed)
+    return True
+
+def getGlobal2Korona():
+    d = datetime.today().strftime('%m-%d-%Y')
+    res = globalDataUrl.replace('{date}', d)
+
+    #Tries to get data from last 5 days
+    for i in range(1,5):
+        try:
+            df = pd.read_csv(res, error_bad_lines=False)
+        except:
+            print("{} {}".format("Couldn't get ", d))
+            try:
+                d = date.today() - timedelta(days=i)
+                d = d.strftime('%m-%d-%Y')
+                
+                res = globalDataUrl.replace('{date}', d)
+                df = pd.read_csv(res, error_bad_lines=False)
+                break
+            except:
+                print("{} {}".format("Couldn't get ", d))
+    #print(res)
+    
+    #print(df['Confirmed'])
+
+    #Lets calculate confirmed, deaths and recovered
+    confirmed = 0
+    for i in df['Confirmed']:
+        confirmed += i
+
+    deaths = 0
+    for i in df['Deaths']:
+        deaths += i
+
+    recovered = 0
+    for i in df['Recovered']:
+        recovered += i
+
+    print(confirmed)
+    print(deaths)
+    print(recovered)
+    
+    return [confirmed, deaths, recovered]
+
 
 
 jprint(response.json()['confirmed'])
@@ -78,3 +140,4 @@ print()
 getPirkanmaaConfirmed(response)
 getPirkanmaaRecovered(response)
 getPirkanmaaDeaths(response)
+getGlobal2Korona()

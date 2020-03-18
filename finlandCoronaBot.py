@@ -27,8 +27,14 @@ SOFTWARE.
 """
 
 import discord
+import re
 import json
+import csv
 import requests
+import asyncio
+import numpy as np
+import pandas as pd
+from datetime import datetime, timedelta, date
 from discord.ext import commands
 
 myToken = 'Njg5MTE0MzgxODUzNzg2MzE4.Xm_1DA.4LegCpYqRrT0BKhIf9D5g0IgMAQ'
@@ -36,6 +42,11 @@ myToken = 'Njg5MTE0MzgxODUzNzg2MzE4.Xm_1DA.4LegCpYqRrT0BKhIf9D5g0IgMAQ'
 #use '.' before command
 client = commands.Bot(command_prefix = '.')
 response = requests.get('https://w3qa5ydb4l.execute-api.eu-west-1.amazonaws.com/prod/finnishCoronaData')
+globalDataUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{date}.csv'
+
+def getResponse():
+    res = requests.get('https://w3qa5ydb4l.execute-api.eu-west-1.amazonaws.com/prod/finnishCoronaData')
+    return res
 
 #just test that bot easy ready to use
 @client.event
@@ -43,43 +54,134 @@ async def on_ready():
     print('Bot is ready.')
 
 #posts Pirkanmaa 
-@client.command()
+@client.command(brief='Pirkanmaa COVID-19 situation')
 async def koronaP(ctx):
     P = getPirkanmaaKorona()
     for i in P:
         await ctx.send(i)
 
 #posts Finland
-@client.command()
+@client.command(brief='Finland COVID-19 situation')
 async def korona(ctx):
     P = getFinlandKorona()
     for i in P:
         await ctx.send(i)
 
+#posts Finland
+@client.command(brief='Global COVID-19 situation')
+async def koronaG(ctx):
+    P = getGlobalKorona()
+    await ctx.send("Global situation:")
+    await ctx.send('{}: {}'.format("Confirmed", P[0]))
+    await ctx.send('{}: {}'.format("Deaths", P[1]))
+    await ctx.send('{}: {}'.format("Recovered", P[2]))
+
+#posts Sannawave
+@client.command(brief='Good song')
+async def marin(ctx):
+    await ctx.send("https://soundcloud.com/user-11140692/sannawave-1")
+
+#file=discord.File('corona.jpeg')
 #if someone mentions corona posts corona bottle
 @client.event
 async def on_message(message):
     channel = message.channel
-    if "corona" in message.content.lower():
-        await channel.send(file=discord.File('corona.jpeg'))
+    if message.author.bot: return
+    elif "corona" in message.content.lower():
+        await channel.send("<:corolla:689538487430414464>")
     elif "korona" in message.content.lower() and ".korona" not in message.content.lower():
         await channel.send('Ai tarkoititko...')
-        await channel.send(file=discord.File('corona.jpeg'))
+        await channel.send("<:corolla:689538487430414464>")
+    elif "peruttu?" in message.content.lower():
+        await channel.send("""```PJ-päivä peruttu
+Vicon jeccusitsit peruttu
+Aurajokilaivuritutkinto peruttu
+Pelkkää kotona oloa annettu
+Tek-akatemia siirretty
+Jyväsmetro siirretty
+SSL:n statistikaan kevätseminaari peruttu
+Pelkkää kotona oloa annettu
+kopokonferenssi peruttu
+titen vujut peruttu
+indecsin vujut peruttu
+Pelkkää kotona oloa annettu
+                            ```""")
+    elif message.content.startswith('haloo?'):
+        await channel.send('haloo')
+    #elif re.findall('pr[ö|u]+t', message.content.lower()) != []:
+        #await channel.send('prööt prööt ja korona levis taas')
+    #Ei voi laittaa laulua, koska liian pitkä
+    elif "makedonia?" in message.content.lower():
+        await channel.send("Kysy Karilta")
+    elif "mpoke?" in message.content.lower():
+        await channel.send("https://www.youtube.com/watch?v=3lj4jEZHYYg")
     #you need this that commands wont't break
     await client.process_commands(message)
 
 def getFinlandKorona():
+    res = response
+    try:
+        res = getResponse()
+    except:
+        print("Couldn't get response from api")
     P = []
-    P.append(getFinlandConfirmed(response))
-    P.append(getFinlandDeaths(response))
-    P.append(getFinlandRecovered(response))
+    P.append(getFinlandConfirmed(res))
+    P.append(getFinlandDeaths(res))
+    P.append(getFinlandRecovered(res))
     return P
 
+def getGlobalKorona():
+    d = datetime.today().strftime('%m-%d-%Y')
+    res = globalDataUrl.replace('{date}', d)
+
+    #Tries to get data from last 5 days
+    for i in range(1,5):
+        try:
+            df = pd.read_csv(res, error_bad_lines=False)
+        except:
+            print("{} {}".format("Couldn't get ", d))
+            try:
+                d = date.today() - timedelta(days=i)
+                d = d.strftime('%m-%d-%Y')
+                
+                res = globalDataUrl.replace('{date}', d)
+                df = pd.read_csv(res, error_bad_lines=False)
+                break
+            except:
+                print("{} {}".format("Couldn't get ", d))
+    #print(res)
+    
+    #print(df['Confirmed'])
+
+    #Lets calculate confirmed, deaths and recovered
+    confirmed = 0
+    for i in df['Confirmed']:
+        confirmed += i
+
+    deaths = 0
+    for i in df['Deaths']:
+        deaths += i
+
+    recovered = 0
+    for i in df['Recovered']:
+        recovered += i
+
+    print(confirmed)
+    print(deaths)
+    print(recovered)
+    
+    return [confirmed, deaths, recovered]
+
 def getPirkanmaaKorona():
+    res = response
+    try:
+        res = getResponse()
+    except:
+        print("Couldn't get response from api")
     P = []
-    P.append(getPirkanmaaConfirmed(response))
-    P.append(getPirkanmaaDeaths(response))
-    P.append(getPirkanmaaRecovered(response))
+    P.append(getPirkanmaaConfirmed(res))
+    P.append(getPirkanmaaDeaths(res))
+    P.append(getPirkanmaaRecovered(res))
     return P
     
 def jprint(obj):
