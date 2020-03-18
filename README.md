@@ -1,4 +1,4 @@
-# discordKoronaBot
+# CorollaBot
 This Discord Bot shows COVID-19 situations
 
 # Commands
