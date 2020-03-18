@@ -51,7 +51,7 @@ def getResponse():
     return res
 
 #Connects to globaldata
-def conncetToGlobal():
+def connectToGlobal():
     d = datetime.today().strftime('%m-%d-%Y')
     res = globalDataUrl.replace('{date}', d)
 
@@ -80,7 +80,7 @@ async def on_ready():
 @client.command(brief='COVID-19 situations. See avaible arguments with help.', description='Avaible arguments:\n-global\n-Country name\n-sairaanhoitopiirien lyhenteet ks. https://www.kuntaliitto.fi/sosiaali-ja-terveysasiat/sairaanhoitopiirien-jasenkunnat\nExamples: .korona Finland and .korona P\nAll not working at this moment.')
 async def korona(ctx, arg):
     try:
-        countries = conncetToGlobal()[0]['Country/Region']
+        countries = connectToGlobal()[0]['Country/Region']
         #muutetaan stringiksi
         strCountries = [str(i) for i in countries]
 
@@ -113,7 +113,7 @@ async def korona(ctx, arg):
 #sends private message of avaible countries
 @client.command(brief='Lists avaible countries')
 async def listCountries(ctx):
-    countries = conncetToGlobal()[0]['Country/Region']
+    countries = connectToGlobal()[0]['Country/Region']
     #muutetaan stringiksi
     strCountries = [str(i) for i in countries]
     strCountries.sort()
@@ -162,7 +162,7 @@ def getFinlandKorona():
     return P
 
 def getGlobalKorona():
-    res = conncetToGlobal()
+    res = connectToGlobal()
     df = res[0]
     d = res[1]
 
@@ -187,7 +187,7 @@ def getGlobalKorona():
 
 
 def getCountryKorona(country):
-    res = conncetToGlobal()
+    res = connectToGlobal()
     df = res[0]
     d = res[1]
 
