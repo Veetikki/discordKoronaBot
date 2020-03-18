@@ -1,29 +1,8 @@
-#Korona bot for Discord
-
 """
+Korona bot for Discord
 Datasource:
-MIT License
-
-Copyright (c) 2020 Helsingin Sanomat
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
+Finland specific (c) 2020 Helsingin Sanomat https://github.com/HS-Datadesk/koronavirus-avoindata
+Global data copyright 2020 Johns Hopkins University https://github.com/CSSEGISandData/COVID-19
 """
 
 import discord
@@ -37,49 +16,123 @@ import pandas as pd
 from datetime import datetime, timedelta, date
 from discord.ext import commands
 
-myToken = 'Njg5MTE0MzgxODUzNzg2MzE4.Xm_1DA.4LegCpYqRrT0BKhIf9D5g0IgMAQ'
+myToken = 'your token'
 
 #use '.' before command
 client = commands.Bot(command_prefix = '.')
 response = requests.get('https://w3qa5ydb4l.execute-api.eu-west-1.amazonaws.com/prod/finnishCoronaData')
 globalDataUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{date}.csv'
 
+#Ei sisällä HUS koska poikkeus APIssa
+sairaanhoitopiirit = [
+                    ["EK", "Etelä-Karjala"],
+                    ["EP", "Etelä-Pohjanmaa"],
+                    ["ES", "Etelä-Savo"],
+                    ["IS", "Itä-Savo"],
+                    ["KAI", "Kainuu"],
+                    ["KH", "Kanta-Häme"],
+                    ["KP", "Keski-Pohjanmaa"],
+                    ["KS", "Keski-Suomi"],
+                    ["KYM", "Kymenlaakso"],
+                    ["L", "Lappi"],
+                    ["LP", "Länsi-Pohja"],
+                    ["P", "Pirkanmaa"],
+                    ["PK", "Pohjois-Karjala"],
+                    ["PP", "Pohjois-Pohjanmaa"],
+                    ["PS", "Pohjois-Savo"],
+                    ["PH", "Päijät-Häme"],
+                    ["S", "Satakunta"],
+                    ["V", "Vaasa"],
+                    ["VS", "Varsinais-Suomi"]
+                    ]
+
 def getResponse():
     res = requests.get('https://w3qa5ydb4l.execute-api.eu-west-1.amazonaws.com/prod/finnishCoronaData')
     return res
+
+#Connects to globaldata
+def conncetToGlobal():
+    d = datetime.today().strftime('%m-%d-%Y')
+    res = globalDataUrl.replace('{date}', d)
+
+    for i in range(1,10):
+        try:
+            df = pd.read_csv(res, error_bad_lines=False)
+        except:
+            try:
+                d = date.today() - timedelta(days=i)
+                strD = d.strftime('%m-%d-%Y')
+                
+                res = globalDataUrl.replace('{date}', strD)
+                df = pd.read_csv(res, error_bad_lines=False)
+                return [df, d]
+            except:
+                if i == 10:
+                    print("Couldn't connect API")
+                    raise Exception("Couldn't connect API")
 
 #just test that bot easy ready to use
 @client.event
 async def on_ready():
     print('Bot is ready.')
 
-#posts Pirkanmaa 
-@client.command(brief='Pirkanmaa COVID-19 situation')
-async def koronaP(ctx):
-    P = getPirkanmaaKorona()
-    for i in P:
-        await ctx.send(i)
-
 #posts Finland
-@client.command(brief='Finland COVID-19 situation')
-async def korona(ctx):
-    P = getFinlandKorona()
-    for i in P:
-        await ctx.send(i)
+@client.command(brief='COVID-19 situations. See avaible arguments with help.', description='Avaible arguments:\n-global\n-Country name\n-sairaanhoitopiirien lyhenteet ks. https://www.kuntaliitto.fi/sosiaali-ja-terveysasiat/sairaanhoitopiirien-jasenkunnat\nExamples: .korona Finland and .korona P\nAll not working at this moment.')
+async def korona(ctx, arg):
+    try:
+        countries = conncetToGlobal()[0]['Country/Region']
+        #muutetaan stringiksi
+        strCountries = [str(i) for i in countries]
 
-#posts Finland
-@client.command(brief='Global COVID-19 situation')
-async def koronaG(ctx):
-    P = getGlobalKorona()
-    await ctx.send("Global situation:")
-    await ctx.send('{}: {}'.format("Confirmed", P[0]))
-    await ctx.send('{}: {}'.format("Deaths", P[1]))
-    await ctx.send('{}: {}'.format("Recovered", P[2]))
+        #Suomi erikseen, koska käyttää parempaa HS:n APIA
+        if arg == 'Finland':
+            P = getFinlandKorona()
+            await ctx.send('{}{}: {}{}{}: {}{}{}: {}'.format("Current Finland situation:\n", "Confirmed", P[0], "\n", "Deaths", P[1], "\n", "Recovered", P[2]))
+        elif arg in strCountries and arg != 'Finland':
+            P = getCountryKorona(arg)
+            await ctx.send('{}{}: {}{}{}: {}{}{}: {}{}{}'.format(arg + " situation:\n", "Confirmed", P[0], "\n", "Deaths", P[1], "\n", "Recovered", P[2], "\nLast data from ", P[3]))
+        elif arg == 'global':
+            P = getGlobalKorona()
+            await ctx.send('{}{}: {}{}{}: {}{}{}: {}{}{}'.format("Global situation:\n", "Confirmed", P[0], "\n", "Deaths", P[1], "\n", "Recovered", P[2], "\nLast data from ", P[3]))
+        elif len(arg) <= 3:
+            if arg == "HUS":
+                P = getSPKorona(arg)
+                await ctx.send('{}{}: {}{}{}: {}{}{}: {}'.format("Current Helsingin ja Uudenmaan sairaanhoitopiiri situation:\n", "Confirmed", P[0], "\n", "Deaths", P[1], "\n", "Recovered", P[2]))
+            else:
+                for i in sairaanhoitopiirit:
+                    if arg in i:
+                        P = getSPKorona(i[1])
+                        await ctx.send('{}{}: {}{}{}: {}{}{}: {}'.format("Current " + i[1] + " situation:\n", "Confirmed", P[0], "\n", "Deaths", P[1], "\n", "Recovered", P[2]))
+                        break
+        else:
+            await ctx.send("En tiedä. Lisätään myöhemmin.")
+    except:
+        await ctx.send("Couldn't connect API")
 
 #posts Sannawave
 @client.command(brief='Good song')
 async def marin(ctx):
     await ctx.send("https://soundcloud.com/user-11140692/sannawave-1")
+
+#sends private message of avaible countries
+@client.command(brief='Lists avaible countries')
+async def listCountries(ctx):
+    countries = conncetToGlobal()[0]['Country/Region']
+    #muutetaan stringiksi
+    strCountries = [str(i) for i in countries]
+    strCountries.sort()
+
+    message = strCountries[0]
+    doubleCheck = [message]
+
+    for i in strCountries:
+        if i not in doubleCheck:
+            s = "\n" + i
+            message += s
+            doubleCheck.append(i)
+    
+    user = ctx.message.author
+    await user.send(message)
 
 #file=discord.File('corona.jpeg')
 #if someone mentions corona posts corona bottle
@@ -89,7 +142,7 @@ async def on_message(message):
     if message.author.bot: return
     elif "corona" in message.content.lower():
         await channel.send("<:corolla:689538487430414464>")
-    elif "korona" in message.content.lower() and ".korona" not in message.content.lower():
+    elif "korona" in message.content.lower() and ".korona" not in message.content.lower() and ".help" not in message.content.lower():
         await channel.send('Ai tarkoititko...')
         await channel.send("<:corolla:689538487430414464>")
     elif "peruttu?" in message.content.lower():
@@ -120,6 +173,7 @@ Pelkkää kotona oloa annettu
 
 def getFinlandKorona():
     res = response
+    #if API is updating or down
     try:
         res = getResponse()
     except:
@@ -131,27 +185,9 @@ def getFinlandKorona():
     return P
 
 def getGlobalKorona():
-    d = datetime.today().strftime('%m-%d-%Y')
-    res = globalDataUrl.replace('{date}', d)
-
-    #Tries to get data from last 5 days
-    for i in range(1,5):
-        try:
-            df = pd.read_csv(res, error_bad_lines=False)
-        except:
-            print("{} {}".format("Couldn't get ", d))
-            try:
-                d = date.today() - timedelta(days=i)
-                d = d.strftime('%m-%d-%Y')
-                
-                res = globalDataUrl.replace('{date}', d)
-                df = pd.read_csv(res, error_bad_lines=False)
-                break
-            except:
-                print("{} {}".format("Couldn't get ", d))
-    #print(res)
-    
-    #print(df['Confirmed'])
+    res = conncetToGlobal()
+    df = res[0]
+    d = res[1]
 
     #Lets calculate confirmed, deaths and recovered
     confirmed = 0
@@ -170,18 +206,43 @@ def getGlobalKorona():
     print(deaths)
     print(recovered)
     
-    return [confirmed, deaths, recovered]
+    return [confirmed, deaths, recovered, d.strftime('%d-%m-%Y')]
 
-def getPirkanmaaKorona():
+
+def getCountryKorona(country):
+    res = conncetToGlobal()
+    df = res[0]
+    d = res[1]
+
+    confirmed = 0
+    deaths = 0
+    recovered = 0
+
+    for i in range(len(df['Country/Region'])):
+        if str(df['Country/Region'][i]) == country:
+            confirmed += df['Confirmed'][i]
+            deaths += df['Deaths'][i]
+            recovered += df['Recovered'][i]
+
+    print(confirmed)
+    print(deaths)
+    print(recovered)
+    
+    return [confirmed, deaths, recovered, d.strftime('%d-%m-%Y')]
+
+#argumenttina sairaanhoitopiiri
+def getSPKorona(sp):
     res = response
+
+    #if API is updating or down
     try:
         res = getResponse()
     except:
         print("Couldn't get response from api")
     P = []
-    P.append(getPirkanmaaConfirmed(res))
-    P.append(getPirkanmaaDeaths(res))
-    P.append(getPirkanmaaRecovered(res))
+    P.append(getPirkanmaaConfirmed(res, sp))
+    P.append(getPirkanmaaDeaths(res, sp))
+    P.append(getPirkanmaaRecovered(res, sp))
     return P
     
 def jprint(obj):
@@ -201,29 +262,29 @@ def getFinlandRecovered(obj):
     print("{}: {}".format("Recovered", len(obj.json()['recovered'])))
     return "{}: {}".format("Finland recovered", len(obj.json()['recovered']))
 
-def getPirkanmaaConfirmed(obj):
+def getPirkanmaaConfirmed(obj, sp):
     pConf = 0
     for i in obj.json()['confirmed']:
-        if i['healthCareDistrict'] == 'Pirkanmaa':
+        if i['healthCareDistrict'] == sp:
             pConf += 1
-    print("{}: {}".format("Pirkanmaa confirmed", pConf))
-    return "{}: {}".format("Pirkanmaa confirmed", pConf)
+    print("{}: {}".format(sp + " confirmed", pConf))
+    return "{}: {}".format(sp + " confirmed", pConf)
 
-def getPirkanmaaRecovered(obj):
+def getPirkanmaaRecovered(obj, sp):
     pConf = 0
     for i in obj.json()['recovered']:
-        if i['healthCareDistrict'] == 'Pirkanmaa':
+        if i['healthCareDistrict'] == sp:
             pConf += 1
-    print("{}: {}".format("Pirkanmaa confirmed", pConf))
-    return "{}: {}".format("Pirkanmaa confirmed", pConf)
+    print("{}: {}".format(sp + " confirmed", pConf))
+    return "{}: {}".format(sp + " confirmed", pConf)
 
-def getPirkanmaaDeaths(obj):
+def getPirkanmaaDeaths(obj, sp):
     pConf = 0
     for i in obj.json()['deaths']:
-        if i['healthCareDistrict'] == 'Pirkanmaa':
+        if i['healthCareDistrict'] == sp:
             pConf += 1
-    print("{}: {}".format("Pirkanmaa deaths", pConf))
-    return "{}: {}".format("Pirkanmaa deaths", pConf)
+    print("{}: {}".format(sp + " deaths", pConf))
+    return "{}: {}".format(sp + " deaths", pConf)
 
 #here you enter your bot token
 client.run(myToken)
