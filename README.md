@@ -2,5 +2,20 @@
 This Discord Bot shows COVID-19 situation in Finland
 
 # Commands
-.korona shows current COVID-19 situation in Finland  
-.koronaP shows current COVID-19 situation in Pirkanmaa
+No Category:
+  help          Shows this message
+  korona        COVID-19 situations. See avaible arguments with help.
+  listCountries Lists avaible countries
+  marin         Good song
+
+Type .help command for more info on a command.
+You can also type .help category for more info on a category.
+
+Avaible arguments for korona:
+-global
+-Country name
+-sairaanhoitopiirien lyhenteet ks. https://www.kuntaliitto.fi/sosiaali-ja-terveysasiat/sairaanhoitopiirien-jasenkunnat
+Examples: .korona Finland and .korona P
+All not working at this moment.
+
+.korona <arg>
