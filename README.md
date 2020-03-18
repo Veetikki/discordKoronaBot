@@ -1,5 +1,5 @@
 # discordKoronaBot
-This Discord Bot shows COVID-19 situation in Finland
+This Discord Bot shows COVID-19 situations
 
 # Commands
 No Category:  
@@ -18,3 +18,6 @@ Avaible arguments for korona:
 Examples: .korona Finland and .korona P  
 All not working at this moment.  
 
+# Datasources
+Finland specific (c) 2020 Helsingin Sanomat https://github.com/HS-Datadesk/koronavirus-avoindata
+Global data copyright 2020 Johns Hopkins University https://github.com/CSSEGISandData/COVID-19
