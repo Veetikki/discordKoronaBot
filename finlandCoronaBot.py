@@ -16,7 +16,7 @@ import pandas as pd
 from datetime import datetime, timedelta, date
 from discord.ext import commands
 
-myToken = 'your token'
+myToken = 'you token'
 
 #use '.' before command
 client = commands.Bot(command_prefix = '.')
@@ -71,12 +71,12 @@ def conncetToGlobal():
                     print("Couldn't connect API")
                     raise Exception("Couldn't connect API")
 
-#just test that bot easy ready to use
+#just test that bot ready to use
 @client.event
 async def on_ready():
     print('Bot is ready.')
 
-#posts Finland
+#Checks arguments
 @client.command(brief='COVID-19 situations. See avaible arguments with help.', description='Avaible arguments:\n-global\n-Country name\n-sairaanhoitopiirien lyhenteet ks. https://www.kuntaliitto.fi/sosiaali-ja-terveysasiat/sairaanhoitopiirien-jasenkunnat\nExamples: .korona Finland and .korona P\nAll not working at this moment.')
 async def korona(ctx, arg):
     try:
@@ -95,6 +95,7 @@ async def korona(ctx, arg):
             P = getGlobalKorona()
             await ctx.send('{}{}: {}{}{}: {}{}{}: {}{}{}'.format("Global situation:\n", "Confirmed", P[0], "\n", "Deaths", P[1], "\n", "Recovered", P[2], "\nLast data from ", P[3]))
         elif len(arg) <= 3:
+            #HUSille on APIssa poikkeus
             if arg == "HUS":
                 P = getSPKorona(arg)
                 await ctx.send('{}{}: {}{}{}: {}{}{}: {}'.format("Current Helsingin ja Uudenmaan sairaanhoitopiiri situation:\n", "Confirmed", P[0], "\n", "Deaths", P[1], "\n", "Recovered", P[2]))
@@ -109,7 +110,7 @@ async def korona(ctx, arg):
     except:
         await ctx.send("Couldn't connect API")
 
-#posts Sannawave
+#posts Sannawave song
 @client.command(brief='Good song')
 async def marin(ctx):
     await ctx.send("https://soundcloud.com/user-11140692/sannawave-1")
@@ -134,10 +135,12 @@ async def listCountries(ctx):
     user = ctx.message.author
     await user.send(message)
 
-#file=discord.File('corona.jpeg')
+
 #if someone mentions corona posts corona bottle
 @client.event
 async def on_message(message):
+    #if you wan to use picture instead you use:
+    #file=discord.File('corona.jpeg')
     channel = message.channel
     if message.author.bot: return
     elif "corona" in message.content.lower():
@@ -218,6 +221,7 @@ def getCountryKorona(country):
     deaths = 0
     recovered = 0
 
+    #if row match with country
     for i in range(len(df['Country/Region'])):
         if str(df['Country/Region'][i]) == country:
             confirmed += df['Confirmed'][i]
