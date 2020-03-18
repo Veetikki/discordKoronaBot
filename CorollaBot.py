@@ -87,23 +87,23 @@ async def korona(ctx, arg):
         #Suomi erikseen, koska käyttää parempaa HS:n APIA
         if arg == 'Finland':
             P = getFinlandKorona()
-            await ctx.send('{}{}: {}{}{}: {}{}{}: {}'.format("Current Finland situation:\n", "Confirmed", P[0], "\n", "Deaths", P[1], "\n", "Recovered", P[2]))
+            await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}'.format("Current Finland situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered", P[2]))
         elif arg in strCountries and arg != 'Finland':
             P = getCountryKorona(arg)
-            await ctx.send('{}{}: {}{}{}: {}{}{}: {}{}{}'.format(arg + " situation:\n", "Confirmed", P[0], "\n", "Deaths", P[1], "\n", "Recovered", P[2], "\nLast data from ", P[3]))
+            await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}{}{}'.format(arg + " situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered", P[2], "\nLast data from ", P[3]))
         elif arg == 'global':
             P = getGlobalKorona()
-            await ctx.send('{}{}: {}{}{}: {}{}{}: {}{}{}'.format("Global situation:\n", "Confirmed", P[0], "\n", "Deaths", P[1], "\n", "Recovered", P[2], "\nLast data from ", P[3]))
+            await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}{}{}'.format("Global situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered", P[2], "\nLast data from ", P[3]))
         elif len(arg) <= 3:
             #HUSille on APIssa poikkeus
             if arg == "HUS":
                 P = getSPKorona(arg)
-                await ctx.send('{}{}: {}{}{}: {}{}{}: {}'.format("Current Helsingin ja Uudenmaan sairaanhoitopiiri situation:\n", "Confirmed", P[0], "\n", "Deaths", P[1], "\n", "Recovered", P[2]))
+                await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}'.format("Current Helsingin ja Uudenmaan sairaanhoitopiiri situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered", P[2]))
             else:
                 for i in sairaanhoitopiirit:
                     if arg in i:
                         P = getSPKorona(i[1])
-                        await ctx.send('{}{}: {}{}{}: {}{}{}: {}'.format("Current " + i[1] + " situation:\n", "Confirmed", P[0], "\n", "Deaths", P[1], "\n", "Recovered", P[2]))
+                        await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}'.format("Current " + i[1] + " situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered", P[2]))
                         break
         else:
             await ctx.send("En tiedä.")
