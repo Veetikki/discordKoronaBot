@@ -106,7 +106,7 @@ async def korona(ctx, arg):
                         await ctx.send('{}{}: {}{}{}: {}{}{}: {}'.format("Current " + i[1] + " situation:\n", "Confirmed", P[0], "\n", "Deaths", P[1], "\n", "Recovered", P[2]))
                         break
         else:
-            await ctx.send("En tiedä. Lisätään myöhemmin.")
+            await ctx.send("En tiedä.")
     except:
         await ctx.send("Couldn't connect API")
 
