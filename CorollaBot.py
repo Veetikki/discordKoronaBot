@@ -230,39 +230,36 @@ def jprint(obj):
 
 def getFinlandConfirmed(obj):
     print('{}: {}'.format("Confirmed", len(obj.json()['confirmed'])))
-    return "{}: {}".format("Finland confirmed", len(obj.json()['confirmed']))
+    return len(obj.json()['confirmed'])
 
 def getFinlandDeaths(obj):
     print("{}: {}".format("Deaths", len(obj.json()['deaths'])))
-    return "{}: {}".format("Finland deaths", len(obj.json()['deaths']))
+    return len(obj.json()['deaths'])
 
 def getFinlandRecovered(obj):
     print("{}: {}".format("Recovered", len(obj.json()['recovered'])))
-    return "{}: {}".format("Finland recovered", len(obj.json()['recovered']))
+    return len(obj.json()['recovered'])
 
 def getSPConfirmed(obj, sp):
     pConf = 0
     for i in obj.json()['confirmed']:
         if i['healthCareDistrict'] == sp:
             pConf += 1
-    print("{}: {}".format(sp + " confirmed", pConf))
-    return "{}: {}".format(sp + " confirmed", pConf)
+    return pConf
 
 def getSPRecovered(obj, sp):
     pConf = 0
     for i in obj.json()['recovered']:
         if i['healthCareDistrict'] == sp:
             pConf += 1
-    print("{}: {}".format(sp + " confirmed", pConf))
-    return "{}: {}".format(sp + " confirmed", pConf)
+    return pConf
 
 def getSPDeaths(obj, sp):
     pConf = 0
     for i in obj.json()['deaths']:
         if i['healthCareDistrict'] == sp:
             pConf += 1
-    print("{}: {}".format(sp + " deaths", pConf))
-    return "{}: {}".format(sp + " deaths", pConf)
+    return pConf
 
 #here you enter your bot token
 client.run(myToken)
