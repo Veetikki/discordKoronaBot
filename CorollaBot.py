@@ -16,7 +16,7 @@ import pandas as pd
 from datetime import datetime, timedelta, date
 from discord.ext import commands
 
-myToken = 'you token'
+myToken = 'your token'
 
 #use '.' before command
 client = commands.Bot(command_prefix = '.')
@@ -110,11 +110,6 @@ async def korona(ctx, arg):
     except:
         await ctx.send("Couldn't connect API")
 
-#posts Sannawave song
-@client.command(brief='Good song')
-async def marin(ctx):
-    await ctx.send("https://soundcloud.com/user-11140692/sannawave-1")
-
 #sends private message of avaible countries
 @client.command(brief='Lists avaible countries')
 async def listCountries(ctx):
@@ -148,29 +143,8 @@ async def on_message(message):
     elif "korona" in message.content.lower() and ".korona" not in message.content.lower() and ".help" not in message.content.lower():
         await channel.send('Ai tarkoititko...')
         await channel.send("<:corolla:689538487430414464>")
-    elif "peruttu?" in message.content.lower():
-        await channel.send("""```PJ-päivä peruttu
-Vicon jeccusitsit peruttu
-Aurajokilaivuritutkinto peruttu
-Pelkkää kotona oloa annettu
-Tek-akatemia siirretty
-Jyväsmetro siirretty
-SSL:n statistikaan kevätseminaari peruttu
-Pelkkää kotona oloa annettu
-kopokonferenssi peruttu
-titen vujut peruttu
-indecsin vujut peruttu
-Pelkkää kotona oloa annettu
-                            ```""")
     elif message.content.startswith('haloo?'):
         await channel.send('haloo')
-    #elif re.findall('pr[ö|u]+t', message.content.lower()) != []:
-        #await channel.send('prööt prööt ja korona levis taas')
-    #Ei voi laittaa laulua, koska liian pitkä
-    elif "makedonia?" in message.content.lower():
-        await channel.send("Kysy Karilta")
-    elif "mpoke?" in message.content.lower():
-        await channel.send("https://www.youtube.com/watch?v=3lj4jEZHYYg")
     #you need this that commands wont't break
     await client.process_commands(message)
 
@@ -244,9 +218,9 @@ def getSPKorona(sp):
     except:
         print("Couldn't get response from api")
     P = []
-    P.append(getPirkanmaaConfirmed(res, sp))
-    P.append(getPirkanmaaDeaths(res, sp))
-    P.append(getPirkanmaaRecovered(res, sp))
+    P.append(getSPConfirmed(res, sp))
+    P.append(getSPDeaths(res, sp))
+    P.append(getSPRecovered(res, sp))
     return P
     
 def jprint(obj):
@@ -266,7 +240,7 @@ def getFinlandRecovered(obj):
     print("{}: {}".format("Recovered", len(obj.json()['recovered'])))
     return "{}: {}".format("Finland recovered", len(obj.json()['recovered']))
 
-def getPirkanmaaConfirmed(obj, sp):
+def getSPConfirmed(obj, sp):
     pConf = 0
     for i in obj.json()['confirmed']:
         if i['healthCareDistrict'] == sp:
@@ -274,7 +248,7 @@ def getPirkanmaaConfirmed(obj, sp):
     print("{}: {}".format(sp + " confirmed", pConf))
     return "{}: {}".format(sp + " confirmed", pConf)
 
-def getPirkanmaaRecovered(obj, sp):
+def getSPRecovered(obj, sp):
     pConf = 0
     for i in obj.json()['recovered']:
         if i['healthCareDistrict'] == sp:
@@ -282,7 +256,7 @@ def getPirkanmaaRecovered(obj, sp):
     print("{}: {}".format(sp + " confirmed", pConf))
     return "{}: {}".format(sp + " confirmed", pConf)
 
-def getPirkanmaaDeaths(obj, sp):
+def getSPDeaths(obj, sp):
     pConf = 0
     for i in obj.json()['deaths']:
         if i['healthCareDistrict'] == sp:
