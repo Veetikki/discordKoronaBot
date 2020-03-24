@@ -13,15 +13,18 @@ import requests
 import asyncio
 import numpy as np
 import pandas as pd
+import math
 from datetime import datetime, timedelta, date
 from discord.ext import commands
 
-myToken = 'your token'
+myToken = 'Njg5MTE0MzgxODUzNzg2MzE4.XnI4UQ.IbLzg765_F-zdWpMUrdcAfJo-VQ'
 
 #use '.' before command
 client = commands.Bot(command_prefix = '.')
-response = requests.get('https://w3qa5ydb4l.execute-api.eu-west-1.amazonaws.com/prod/finnishCoronaData')
-globalDataUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{date}.csv'
+HSurl = 'https://w3qa5ydb4l.execute-api.eu-west-1.amazonaws.com/prod/finnishCoronaData'
+globalConfUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv'
+globalDeathsUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv'
+globalRecUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv'
 
 #Ei sisällä HUS koska poikkeus APIssa
 sairaanhoitopiirit = [
@@ -47,29 +50,27 @@ sairaanhoitopiirit = [
                     ]
 
 def getResponse():
-    res = requests.get('https://w3qa5ydb4l.execute-api.eu-west-1.amazonaws.com/prod/finnishCoronaData')
+    res = requests.get(HSurl)
     return res
 
 #Connects to globaldata
 def connectToGlobal():
-    d = datetime.today().strftime('%m-%d-%Y')
-    res = globalDataUrl.replace('{date}', d)
+    conf = pd.read_csv(globalConfUrl, error_bad_lines=False)
+    deaths = pd.read_csv(globalDeathsUrl, error_bad_lines=False)
+    rec = pd.read_csv(globalRecUrl, error_bad_lines=False)
 
-    for i in range(1,10):
+    for i in range(0,10):
         try:
-            df = pd.read_csv(res, error_bad_lines=False)
+            d = date.today() - timedelta(days=i)
+            strD = d.strftime('%#m/%d/%y')
+            #katotaan onko dataa
+            conf[strD]
+
+            return [conf, deaths, rec, d]
         except:
-            try:
-                d = date.today() - timedelta(days=i)
-                strD = d.strftime('%m-%d-%Y')
-                
-                res = globalDataUrl.replace('{date}', strD)
-                df = pd.read_csv(res, error_bad_lines=False)
-                return [df, d]
-            except:
-                if i == 10:
-                    print("Couldn't connect API")
-                    raise Exception("Couldn't connect API")
+            if i == 10:
+                print("Couldn't connect API")
+                raise Exception("Couldn't connect API")
 
 #just test that bot ready to use
 @client.event
@@ -80,6 +81,7 @@ async def on_ready():
 @client.command(brief='COVID-19 situations. See avaible arguments with help.', description='Avaible arguments:\n-global\n-Country name\n-sairaanhoitopiirien lyhenteet ks. https://www.kuntaliitto.fi/sosiaali-ja-terveysasiat/sairaanhoitopiirien-jasenkunnat\nExamples: .korona Finland and .korona P\nAll not working at this moment.')
 async def korona(ctx, arg):
     try:
+        #haetaan maat aina kun hakee. Ei kauhean optimaalista, mutta päivitellään myöhemmin.
         countries = connectToGlobal()[0]['Country/Region']
         #muutetaan stringiksi
         strCountries = [str(i) for i in countries]
@@ -149,35 +151,47 @@ async def on_message(message):
     await client.process_commands(message)
 
 def getFinlandKorona():
-    res = response
     #if API is updating or down
     try:
         res = getResponse()
+        P = []
+        P.append(getFinlandConfirmed(res))
+        P.append(getFinlandDeaths(res))
+        P.append(getFinlandRecovered(res))
+        return P
     except:
         print("Couldn't get response from api")
-    P = []
-    P.append(getFinlandConfirmed(res))
-    P.append(getFinlandDeaths(res))
-    P.append(getFinlandRecovered(res))
-    return P
 
 def getGlobalKorona():
     res = connectToGlobal()
-    df = res[0]
-    d = res[1]
+    conf = res[0]
+    dea = res[1]
+    rec = res[2]
+    d = res[3]
+    #huono muotoilu tässäkin
+    strD = d.strftime('%#m/%d/%y')
 
     #Lets calculate confirmed, deaths and recovered
+    #käyttää jostain syystä floattia joka paikassa
     confirmed = 0
-    for i in df['Confirmed']:
-        confirmed += i
+    for i in conf[strD]:
+        if not math.isnan(i):
+            confirmed += i
 
     deaths = 0
-    for i in df['Deaths']:
-        deaths += i
+    for i in dea[strD]:
+        if not math.isnan(i):
+            deaths += i
 
     recovered = 0
-    for i in df['Recovered']:
-        recovered += i
+    for i in rec[strD]:
+        if not math.isnan(i):
+            recovered += i
+
+    #muutetaan kokonaisluvuksi, koska jostain kumman syystä käyttää floattia
+    confirmed = int(round(confirmed))
+    deaths = int(round(deaths))
+    recovered = int(round(recovered))
 
     print(confirmed)
     print(deaths)
@@ -188,19 +202,31 @@ def getGlobalKorona():
 
 def getCountryKorona(country):
     res = connectToGlobal()
-    df = res[0]
-    d = res[1]
+    conf = res[0]
+    dea = res[1]
+    rec = res[2]
+    d = res[3]
+    strD = d.strftime('%#m/%d/%y')
 
+    #Lets calculate confirmed, deaths and recovered
     confirmed = 0
-    deaths = 0
-    recovered = 0
+    for i in range(len(conf['Country/Region'])):
+        if str(conf['Country/Region'][i]) == country and not math.isnan(conf[strD][i]):
+            confirmed += conf[strD][i]
 
-    #if row match with country
-    for i in range(len(df['Country/Region'])):
-        if str(df['Country/Region'][i]) == country:
-            confirmed += df['Confirmed'][i]
-            deaths += df['Deaths'][i]
-            recovered += df['Recovered'][i]
+    deaths = 0
+    for i in range(len(dea['Country/Region'])):
+        if str(dea['Country/Region'][i]) == country and not math.isnan(dea[strD][i]):
+            deaths += dea[strD][i]
+
+    recovered = 0
+    for i in range(len(rec['Country/Region'])):
+        if str(rec['Country/Region'][i]) == country and not math.isnan(rec[strD][i]):
+            recovered += rec[strD][i]
+
+    confirmed = int(round(confirmed))
+    deaths = int(round(deaths))
+    recovered = int(round(recovered))
 
     print(confirmed)
     print(deaths)
@@ -210,18 +236,16 @@ def getCountryKorona(country):
 
 #argumenttina sairaanhoitopiiri
 def getSPKorona(sp):
-    res = response
-
     #if API is updating or down
     try:
         res = getResponse()
+        P = []
+        P.append(getSPConfirmed(res, sp))
+        P.append(getSPDeaths(res, sp))
+        P.append(getSPRecovered(res, sp))
+        return P
     except:
         print("Couldn't get response from api")
-    P = []
-    P.append(getSPConfirmed(res, sp))
-    P.append(getSPDeaths(res, sp))
-    P.append(getSPRecovered(res, sp))
-    return P
     
 def jprint(obj):
     # create a formatted string of the Python JSON object
