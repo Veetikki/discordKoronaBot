@@ -17,7 +17,7 @@ import math
 from datetime import datetime, timedelta, date
 from discord.ext import commands
 
-myToken = 'Njg5MTE0MzgxODUzNzg2MzE4.XnI4UQ.IbLzg765_F-zdWpMUrdcAfJo-VQ'
+myToken = 'your token'
 
 #use '.' before command
 client = commands.Bot(command_prefix = '.')
