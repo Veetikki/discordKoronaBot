@@ -22,8 +22,9 @@ myToken = 'your token'
 #use '.' before command
 client = commands.Bot(command_prefix = '.')
 HSurl = 'https://w3qa5ydb4l.execute-api.eu-west-1.amazonaws.com/prod/finnishCoronaData'
-globalConfUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv'
-globalDeathsUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv'
+globalConfUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
+globalDeathsUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv'
+#This is old and not updating currently
 globalRecUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv'
 
 #Ei sisällä HUS koska poikkeus APIssa
@@ -93,10 +94,10 @@ async def korona(ctx, arg):
             await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}'.format("Current Finland situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered", P[2]))
         elif arg in strCountries and arg != 'Finland':
             P = getCountryKorona(arg)
-            await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}{}{}'.format(arg + " situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered", P[2], "\nLast data from ", P[3]))
+            await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}{}{}'.format(arg + " situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered (not updated)", P[2], "\nLast data from ", P[3]))
         elif arg == 'global':
             P = getGlobalKorona()
-            await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}{}{}'.format("Global situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered", P[2], "\nLast data from ", P[3]))
+            await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}{}{}'.format("Global situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered (not updated)", P[2], "\nLast data from ", P[3]))
         elif len(arg) <= 3:
             #HUSille on APIssa poikkeus
             if arg == "HUS":
