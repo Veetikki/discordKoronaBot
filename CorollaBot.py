@@ -62,6 +62,7 @@ def connectToGlobal():
     for i in range(0,10):
         try:
             d = date.today() - timedelta(days=i)
+            #jos käyttää linuxia, niin käytä d.strftime('%-m/%d/%y')
             strD = d.strftime('%#m/%d/%y')
             #katotaan onko dataa
             conf[strD]
@@ -169,6 +170,7 @@ def getGlobalKorona():
     rec = res[2]
     d = res[3]
     #huono muotoilu tässäkin
+    #jos käyttää linuxia, niin käytä d.strftime('%-m/%d/%y')
     strD = d.strftime('%#m/%d/%y')
 
     #Lets calculate confirmed, deaths and recovered
@@ -206,6 +208,7 @@ def getCountryKorona(country):
     dea = res[1]
     rec = res[2]
     d = res[3]
+    #jos käyttää linuxia, niin käytä d.strftime('%-m/%d/%y')
     strD = d.strftime('%#m/%d/%y')
 
     #Lets calculate confirmed, deaths and recovered
