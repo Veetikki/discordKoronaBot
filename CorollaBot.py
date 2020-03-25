@@ -186,8 +186,9 @@ def getGlobalKorona():
         if not math.isnan(i):
             deaths += i
 
+    #Not currently updating
     recovered = 0
-    for i in rec[strD]:
+    for i in rec["3/23/20"]:
         if not math.isnan(i):
             recovered += i
 
@@ -225,8 +226,9 @@ def getCountryKorona(country):
 
     recovered = 0
     for i in range(len(rec['Country/Region'])):
-        if str(rec['Country/Region'][i]) == country and not math.isnan(rec[strD][i]):
-            recovered += rec[strD][i]
+        #This is not updating currently
+        if str(rec['Country/Region'][i]) == country and not math.isnan(rec["3/23/20"][i]):
+            recovered += rec["3/23/20"][i]
 
     confirmed = int(round(confirmed))
     deaths = int(round(deaths))
