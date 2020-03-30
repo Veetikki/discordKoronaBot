@@ -94,10 +94,10 @@ async def korona(ctx, arg):
             await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}'.format("Current Finland situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered", P[2]))
         elif arg in strCountries and arg != 'Finland':
             P = getCountryKorona(arg)
-            await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}{}{}'.format(arg + " situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered (not updated)", P[2], "\nLast data from ", P[3]))
+            await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}{}{}'.format(arg + " situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered", P[2], "\nLast data from ", P[3]))
         elif arg == 'global':
             P = getGlobalKorona()
-            await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}{}{}'.format("Global situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered (not updated)", P[2], "\nLast data from ", P[3]))
+            await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}{}{}'.format("Global situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered", P[2], "\nLast data from ", P[3]))
         elif len(arg) <= 3:
             #HUSille on APIssa poikkeus
             if arg == "HUS":
@@ -188,7 +188,7 @@ def getGlobalKorona():
 
     #Not currently updating
     recovered = 0
-    for i in rec["3/23/20"]:
+    for i in rec[strD]:
         if not math.isnan(i):
             recovered += i
 
@@ -227,8 +227,8 @@ def getCountryKorona(country):
     recovered = 0
     for i in range(len(rec['Country/Region'])):
         #This is not updating currently
-        if str(rec['Country/Region'][i]) == country and not math.isnan(rec["3/23/20"][i]):
-            recovered += rec["3/23/20"][i]
+        if str(rec['Country/Region'][i]) == country and not math.isnan(rec[strD][i]):
+            recovered += rec[strD][i]
 
     confirmed = int(round(confirmed))
     deaths = int(round(deaths))
