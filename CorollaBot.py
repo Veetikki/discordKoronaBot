@@ -24,8 +24,7 @@ client = commands.Bot(command_prefix = '.')
 HSurl = 'https://w3qa5ydb4l.execute-api.eu-west-1.amazonaws.com/prod/finnishCoronaData'
 globalConfUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
 globalDeathsUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv'
-#This is old and not updating currently
-globalRecUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv'
+globalRecUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv'
 
 #Ei sisällä HUS koska poikkeus APIssa
 sairaanhoitopiirit = [
@@ -91,28 +90,29 @@ async def korona(ctx, arg):
         #Suomi erikseen, koska käyttää parempaa HS:n APIA
         if arg == 'Finland':
             P = getFinlandKorona()
-            await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}'.format("Current Finland situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered", P[2]))
+            await ctx.send('{}{}: {:,} (+{:,})\n{}: {:,} (+{:,})\n{}: {:,} (+{:,})'.format("Current Finland situation:\n", "Confirmed", P[0][0], P[0][1], "Deaths", P[1][0], P[1][1], "Recovered", P[2][0], P[2][1]))
         elif arg in strCountries and arg != 'Finland':
             P = getCountryKorona(arg)
-            await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}{}{}'.format(arg + " situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered", P[2], "\nLast data from ", P[3]))
+            await ctx.send('{}{}: {:,} (+{:,})\n{}: {:,} (+{:,})\n{}: {:,} (+{:,}){}{}'.format("Global situation:\n", "Confirmed", P[0][0], P[0][1], "Deaths", P[1][0], P[1][1], "Recovered", P[2][0],P[2][1], "\nLast data from ", P[3]))
         elif arg == 'global':
             P = getGlobalKorona()
-            await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}{}{}'.format("Global situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered", P[2], "\nLast data from ", P[3]))
+            await ctx.send('{}{}: {:,} (+{:,})\n{}: {:,} (+{:,})\n{}: {:,} (+{:,}){}{}'.format("Global situation:\n", "Confirmed", P[0][0], P[0][1], "Deaths", P[1][0], P[1][1], "Recovered", P[2][0],P[2][1], "\nLast data from ", P[3]))
         elif len(arg) <= 3:
             #HUSille on APIssa poikkeus
             if arg == "HUS":
                 P = getSPKorona(arg)
-                await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}'.format("Current Helsingin ja Uudenmaan sairaanhoitopiiri situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered", P[2]))
+                await ctx.send('{}{}: {:,} (+{:,})\n{}: {:,} (+{:,})\n{}: {:,} (+{:,})'.format("Current Finland situation:\n", "Confirmed", P[0][0], P[0][1], "Deaths", P[1][0], P[1][1], "Recovered", P[2][0], P[2][1]))
             else:
                 for i in sairaanhoitopiirit:
                     if arg in i:
                         P = getSPKorona(i[1])
-                        await ctx.send('{}{}: {:,}\n{}: {:,}\n{}: {:,}'.format("Current " + i[1] + " situation:\n", "Confirmed", P[0], "Deaths", P[1], "Recovered", P[2]))
+                        await ctx.send('{}{}: {:,} (+{:,})\n{}: {:,} (+{:,})\n{}: {:,} (+{:,})'.format("Current Finland situation:\n", "Confirmed", P[0][0], P[0][1], "Deaths", P[1][0], P[1][1], "Recovered", P[2][0], P[2][1]))
                         break
         else:
             await ctx.send("En tiedä.")
     except:
         await ctx.send("Couldn't connect API")
+
 
 #sends private message of avaible countries
 @client.command(brief='Lists avaible countries')
@@ -156,10 +156,7 @@ def getFinlandKorona():
     #if API is updating or down
     try:
         res = getResponse()
-        P = []
-        P.append(getFinlandConfirmed(res))
-        P.append(getFinlandDeaths(res))
-        P.append(getFinlandRecovered(res))
+        P = [getFinlandConfirmed(res), getFinlandDeaths(res), getFinlandRecovered(res)]
         return P
     except:
         print("Couldn't get response from api")
@@ -170,37 +167,17 @@ def getGlobalKorona():
     dea = res[1]
     rec = res[2]
     d = res[3]
+    yd = d - timedelta(days=1)
     #huono muotoilu tässäkin
-    #jos käyttää linuxia, niin käytä d.strftime('%-m/%d/%y')
     strD = d.strftime('%#m/%d/%y')
+    strYd = yd.strftime('%#m/%d/%y')
 
     #Lets calculate confirmed, deaths and recovered
     #käyttää jostain syystä floattia joka paikassa
-    confirmed = 0
-    for i in conf[strD]:
-        if not math.isnan(i):
-            confirmed += i
+    confirmed = [sum(conf[strD]), sum(conf[strD]) - sum(conf[strYd])]
+    deaths = [sum(dea[strD]), sum(dea[strD]) - sum(dea[strYd])]
+    recovered = [sum(rec[strD]), sum(rec[strD]) - sum(rec[strYd])]
 
-    deaths = 0
-    for i in dea[strD]:
-        if not math.isnan(i):
-            deaths += i
-
-    #Not currently updating
-    recovered = 0
-    for i in rec[strD]:
-        if not math.isnan(i):
-            recovered += i
-
-    #muutetaan kokonaisluvuksi, koska jostain kumman syystä käyttää floattia
-    confirmed = int(round(confirmed))
-    deaths = int(round(deaths))
-    recovered = int(round(recovered))
-
-    print(confirmed)
-    print(deaths)
-    print(recovered)
-    
     return [confirmed, deaths, recovered, d.strftime('%d-%m-%Y')]
 
 
@@ -210,33 +187,24 @@ def getCountryKorona(country):
     dea = res[1]
     rec = res[2]
     d = res[3]
-    #jos käyttää linuxia, niin käytä d.strftime('%-m/%d/%y')
+    yd = d - timedelta(days=1)
+    #huono muotoilu tässäkin
     strD = d.strftime('%#m/%d/%y')
+    strYd = yd.strftime('%#m/%d/%y')
 
     #Lets calculate confirmed, deaths and recovered
-    confirmed = 0
-    for i in range(len(conf['Country/Region'])):
-        if str(conf['Country/Region'][i]) == country and not math.isnan(conf[strD][i]):
-            confirmed += conf[strD][i]
+    #todays and yesterday
+    tConf = [conf[strD][i] for i in range(len(conf['Country/Region'])) if str(conf['Country/Region'][i]) == country]
+    yConf = [conf[strYd][i] for i in range(len(conf['Country/Region'])) if str(conf['Country/Region'][i]) == country]
+    confirmed = [sum(tConf), sum(tConf) - sum(yConf)]
 
-    deaths = 0
-    for i in range(len(dea['Country/Region'])):
-        if str(dea['Country/Region'][i]) == country and not math.isnan(dea[strD][i]):
-            deaths += dea[strD][i]
+    tDea = [dea[strD][i] for i in range(len(dea['Country/Region'])) if str(dea['Country/Region'][i]) == country]
+    yDea = [dea[strYd][i] for i in range(len(dea['Country/Region'])) if str(dea['Country/Region'][i]) == country]
+    deaths = [sum(tDea), sum(tDea) - sum(yDea)]
 
-    recovered = 0
-    for i in range(len(rec['Country/Region'])):
-        #This is not updating currently
-        if str(rec['Country/Region'][i]) == country and not math.isnan(rec[strD][i]):
-            recovered += rec[strD][i]
-
-    confirmed = int(round(confirmed))
-    deaths = int(round(deaths))
-    recovered = int(round(recovered))
-
-    print(confirmed)
-    print(deaths)
-    print(recovered)
+    tRec = [rec[strD][i] for i in range(len(rec['Country/Region'])) if str(rec['Country/Region'][i]) == country]
+    yRec = [rec[strYd][i] for i in range(len(rec['Country/Region'])) if str(rec['Country/Region'][i]) == country]
+    recovered = [sum(tRec), sum(tRec) - sum(yRec)]
     
     return [confirmed, deaths, recovered, d.strftime('%d-%m-%Y')]
 
@@ -245,10 +213,7 @@ def getSPKorona(sp):
     #if API is updating or down
     try:
         res = getResponse()
-        P = []
-        P.append(getSPConfirmed(res, sp))
-        P.append(getSPDeaths(res, sp))
-        P.append(getSPRecovered(res, sp))
+        P = [getSPConfirmed(res, sp), getSPDeaths(res, sp), getSPRecovered(res, sp)]
         return P
     except:
         print("Couldn't get response from api")
@@ -259,37 +224,28 @@ def jprint(obj):
     print(text)
 
 def getFinlandConfirmed(obj):
-    print('{}: {}'.format("Confirmed", len(obj.json()['confirmed'])))
-    return len(obj.json()['confirmed'])
+    print('{}: {} {}'.format("Confirmed", len(obj.json()['confirmed']), sum([1 for i in obj.json()['confirmed'] if i['date'] < (datetime.today() - timedelta(days=1)).isoformat()])))
+    return [len(obj.json()['confirmed']), len(obj.json()['confirmed']) - sum([1 for i in obj.json()['confirmed'] if i['date'] < (datetime.today() - timedelta(days=1)).isoformat()])]
 
 def getFinlandDeaths(obj):
-    print("{}: {}".format("Deaths", len(obj.json()['deaths'])))
-    return len(obj.json()['deaths'])
+    print('{}: {} {}'.format("Deaths", len(obj.json()['deaths']), sum([1 for i in obj.json()['deaths'] if i['date'] < (datetime.today() - timedelta(days=1)).isoformat()])))
+    return [len(obj.json()['deaths']), len(obj.json()['deaths']) - sum([1 for i in obj.json()['deaths'] if i['date'] < (datetime.today() - timedelta(days=1)).isoformat()])]
 
 def getFinlandRecovered(obj):
-    print("{}: {}".format("Recovered", len(obj.json()['recovered'])))
-    return len(obj.json()['recovered'])
+    print('{}: {} {}'.format("Recovered", len(obj.json()['recovered']), sum([1 for i in obj.json()['recovered'] if i['date'] < (datetime.today() - timedelta(days=1)).isoformat()])))
+    return [len(obj.json()['recovered']), len(obj.json()['recovered']) - sum([1 for i in obj.json()['recovered'] if i['date'] < (datetime.today() - timedelta(days=1)).isoformat()])]
 
 def getSPConfirmed(obj, sp):
-    pConf = 0
-    for i in obj.json()['confirmed']:
-        if i['healthCareDistrict'] == sp:
-            pConf += 1
-    return pConf
+    conf = sum([1 for i in obj.json()['confirmed'] if i['healthCareDistrict'] == sp])
+    return [conf, conf - sum([1 for i in obj.json()['confirmed'] if i['date'] < (datetime.today() - timedelta(days=1)).isoformat() and i['healthCareDistrict'] == sp])]
 
 def getSPRecovered(obj, sp):
-    pConf = 0
-    for i in obj.json()['recovered']:
-        if i['healthCareDistrict'] == sp:
-            pConf += 1
-    return pConf
+    rec = sum([1 for i in obj.json()['recovered'] if i['healthCareDistrict'] == sp])
+    return [rec, rec - sum([1 for i in obj.json()['recovered'] if i['date'] < (datetime.today() - timedelta(days=1)).isoformat() and i['healthCareDistrict'] == sp])]
 
 def getSPDeaths(obj, sp):
-    pConf = 0
-    for i in obj.json()['deaths']:
-        if i['healthCareDistrict'] == sp:
-            pConf += 1
-    return pConf
+    deaths = sum([1 for i in obj.json()['deaths'] if i['healthCareDistrict'] == sp])
+    return [deaths, deaths - sum([1 for i in obj.json()['deaths'] if i['date'] < (datetime.today() - timedelta(days=1)).isoformat() and i['healthCareDistrict'] == sp])]
 
 #here you enter your bot token
 client.run(myToken)
