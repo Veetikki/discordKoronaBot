@@ -93,7 +93,7 @@ async def korona(ctx, arg):
             await ctx.send('{}{}: {:,} (+{:,})\n{}: {:,} (+{:,})\n{}: {:,} (+{:,})'.format("Current Finland situation:\n", "Confirmed", P[0][0], P[0][1], "Deaths", P[1][0], P[1][1], "Recovered", P[2][0], P[2][1]))
         elif arg in strCountries and arg != 'Finland':
             P = getCountryKorona(arg)
-            await ctx.send('{}{}: {:,} (+{:,})\n{}: {:,} (+{:,})\n{}: {:,} (+{:,}){}{}'.format("Global situation:\n", "Confirmed", P[0][0], P[0][1], "Deaths", P[1][0], P[1][1], "Recovered", P[2][0],P[2][1], "\nLast data from ", P[3]))
+            await ctx.send('{}{}: {:,} (+{:,})\n{}: {:,} (+{:,})\n{}: {:,} (+{:,}){}{}'.format(arg + " situation:\n", "Confirmed", P[0][0], P[0][1], "Deaths", P[1][0], P[1][1], "Recovered", P[2][0],P[2][1], "\nLast data from ", P[3]))
         elif arg == 'global':
             P = getGlobalKorona()
             await ctx.send('{}{}: {:,} (+{:,})\n{}: {:,} (+{:,})\n{}: {:,} (+{:,}){}{}'.format("Global situation:\n", "Confirmed", P[0][0], P[0][1], "Deaths", P[1][0], P[1][1], "Recovered", P[2][0],P[2][1], "\nLast data from ", P[3]))
