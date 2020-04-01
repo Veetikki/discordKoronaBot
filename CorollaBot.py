@@ -101,12 +101,12 @@ async def korona(ctx, arg):
             #HUSille on APIssa poikkeus
             if arg == "HUS":
                 P = getSPKorona(arg)
-                await ctx.send('{}{}: {:,} (+{:,})\n{}: {:,} (+{:,})\n{}: {:,} (+{:,})'.format("Current Finland situation:\n", "Confirmed", P[0][0], P[0][1], "Deaths", P[1][0], P[1][1], "Recovered", P[2][0], P[2][1]))
+                await ctx.send('{}{}: {:,} (+{:,})\n{}: {:,} (+{:,})\n{}: {:,} (+{:,})'.format(HUS + " situation:\n", "Confirmed", P[0][0], P[0][1], "Deaths", P[1][0], P[1][1], "Recovered", P[2][0], P[2][1]))
             else:
                 for i in sairaanhoitopiirit:
                     if arg in i:
                         P = getSPKorona(i[1])
-                        await ctx.send('{}{}: {:,} (+{:,})\n{}: {:,} (+{:,})\n{}: {:,} (+{:,})'.format("Current Finland situation:\n", "Confirmed", P[0][0], P[0][1], "Deaths", P[1][0], P[1][1], "Recovered", P[2][0], P[2][1]))
+                        await ctx.send('{}{}: {:,} (+{:,})\n{}: {:,} (+{:,})\n{}: {:,} (+{:,})'.format(i[1] + " situation:\n", "Confirmed", P[0][0], P[0][1], "Deaths", P[1][0], P[1][1], "Recovered", P[2][0], P[2][1]))
                         break
         else:
             await ctx.send("En tiedä.")
