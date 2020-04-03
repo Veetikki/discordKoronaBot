@@ -21,7 +21,7 @@ myToken = 'your token'
 
 #use '.' before command
 client = commands.Bot(command_prefix = '.')
-HSurl = 'https://w3qa5ydb4l.execute-api.eu-west-1.amazonaws.com/prod/finnishCoronaData'
+HSurl = 'https://w3qa5ydb4l.execute-api.eu-west-1.amazonaws.com/prod/finnishCoronaData/v2'
 globalConfUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv'
 globalDeathsUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv'
 globalRecUrl = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv'
@@ -73,6 +73,9 @@ def connectToGlobal():
                 print("Couldn't connect API")
                 raise Exception("Couldn't connect API")
 
+#Get countries
+strCountries = [str(i) for i in connectToGlobal()[0]['Country/Region']]
+
 #just test that bot ready to use
 @client.event
 async def on_ready():
@@ -82,11 +85,6 @@ async def on_ready():
 @client.command(brief='COVID-19 situations. See avaible arguments with help.', description='Avaible arguments:\n-global\n-Country name\n-sairaanhoitopiirien lyhenteet ks. https://www.kuntaliitto.fi/sosiaali-ja-terveysasiat/sairaanhoitopiirien-jasenkunnat\nExamples: .korona Finland and .korona P\nAll not working at this moment.')
 async def korona(ctx, arg):
     try:
-        #haetaan maat aina kun hakee. Ei kauhean optimaalista, mutta päivitellään myöhemmin.
-        countries = connectToGlobal()[0]['Country/Region']
-        #muutetaan stringiksi
-        strCountries = [str(i) for i in countries]
-
         #Suomi erikseen, koska käyttää parempaa HS:n APIA
         if arg == 'Finland':
             P = getFinlandKorona()
