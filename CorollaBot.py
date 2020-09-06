@@ -63,10 +63,10 @@ def connectToGlobal():
         try:
             d = date.today() - timedelta(days=i)
             #jos käyttää linuxia, niin käytä d.strftime('%-m/%d/%y')
-            strD = d.strftime('%#m/%#d/%y')
+            strD = d.strftime('%-m/%-d/%y')
             #katotaan onko dataa
             conf[strD]
-
+            
             return [conf, deaths, rec, d]
         except:
             if i == 10:
@@ -92,7 +92,7 @@ async def korona(ctx, arg):
         elif arg in strCountries and arg != 'Finland':
             P = getCountryKorona(arg)
             await ctx.send('{}{}: {:,} (+{:,})\n{}: {:,} (+{:,})\n{}: {:,} (+{:,}){}{}'.format(arg + " situation:\n", "Confirmed", P[0][0], P[0][1], "Deaths", P[1][0], P[1][1], "Recovered", P[2][0],P[2][1], "\nLast data from ", P[3]))
-        elif arg == 'global':
+        elif arg == 'Global':
             P = getGlobalKorona()
             await ctx.send('{}{}: {:,} (+{:,})\n{}: {:,} (+{:,})\n{}: {:,} (+{:,}){}{}'.format("Global situation:\n", "Confirmed", P[0][0], P[0][1], "Deaths", P[1][0], P[1][1], "Recovered", P[2][0],P[2][1], "\nLast data from ", P[3]))
         elif len(arg) <= 3:
@@ -157,7 +157,7 @@ def getFinlandKorona():
         P = [getFinlandConfirmed(res), getFinlandDeaths(res), getFinlandRecovered(res)]
         return P
     except:
-        print("Couldn't get response from api")
+        print("Couldn't get response from API")
 
 def getGlobalKorona():
     res = connectToGlobal()
@@ -166,16 +166,16 @@ def getGlobalKorona():
     rec = res[2]
     d = res[3]
     yd = d - timedelta(days=1)
-    #huono muotoilu tässäkin
-    strD = d.strftime('%#m/%#d/%y')
-    strYd = yd.strftime('%#m/%#d/%y')
+    #huono muotoilu tässäkin huomaa sama kuin ylempänä jos käyttää linuxia
+    strD = d.strftime('%-m/%-d/%y')
+    strYd = yd.strftime('%-m/%-d/%y')
 
     #Lets calculate confirmed, deaths and recovered
     #käyttää jostain syystä floattia joka paikassa
     confirmed = [sum(conf[strD]), sum(conf[strD]) - sum(conf[strYd])]
     deaths = [sum(dea[strD]), sum(dea[strD]) - sum(dea[strYd])]
     recovered = [sum(rec[strD]), sum(rec[strD]) - sum(rec[strYd])]
-
+    
     return [confirmed, deaths, recovered, d.strftime('%d-%m-%Y')]
 
 
@@ -186,9 +186,9 @@ def getCountryKorona(country):
     rec = res[2]
     d = res[3]
     yd = d - timedelta(days=1)
-    #huono muotoilu tässäkin
-    strD = d.strftime('%#m/%#d/%y')
-    strYd = yd.strftime('%#m/%#d/%y')
+    #huono muotoilu tässäkin muistaa vaihtaa jos linux
+    strD = d.strftime('%-m/%-d/%y')
+    strYd = yd.strftime('%-m/%-d/%y')
 
     #Lets calculate confirmed, deaths and recovered
     #todays and yesterday
